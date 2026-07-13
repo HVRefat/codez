@@ -1,26 +1,308 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #f7f9fb;
+  --surface: #ffffff;
+  --surface-2: #eef2f6;
+  --line: #dce3ea;
+  --text: #0e1726;
+  --text-dim: #5b6b7c;
+  --brand: #0e4da4;
+  --brand-strong: #093873;
+  --accent: #14b8a6;
+  --danger: #dc2626;
+  --warn: #d97706;
+  --ok: #059669;
+
+  --severity-low: var(--text-dim);
+  --severity-medium: var(--warn);
+  --severity-high: #ea580c;
+  --severity-critical: var(--danger);
+
+  --shadow-panel: 0 1px 2px rgba(14, 23, 38, 0.04), 0 8px 24px rgba(14, 23, 38, 0.06);
+
+  --font-display: var(--font-jakarta);
+  --font-body: var(--font-inter);
+}
+
+.dark {
+  --bg: #0b1220;
+  --surface: #111b2e;
+  --surface-2: #0e1626;
+  --line: #1f2c44;
+  --text: #e6edf5;
+  --text-dim: #8fa1b5;
+  --brand: #4d8dff;
+  --brand-strong: #7faeff;
+  --accent: #2dd4bf;
+  --danger: #f87171;
+  --warn: #fbbf24;
+  --ok: #34d399;
+
+  --severity-low: var(--text-dim);
+  --severity-medium: var(--warn);
+  --severity-high: #fb923c;
+  --severity-critical: var(--danger);
+
+  --shadow-panel: none;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-text: var(--text);
+  --color-text-dim: var(--text-dim);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+  --color-warn: var(--warn);
+  --color-ok: var(--ok);
+  --color-severity-low: var(--severity-low);
+  --color-severity-medium: var(--severity-medium);
+  --color-severity-high: var(--severity-high);
+  --color-severity-critical: var(--severity-critical);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes shimmer {
+  from {
+    background-position: -400px 0;
+  }
+  to {
+    background-position: 400px 0;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    background: var(--bg);
+    overflow-x: hidden;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  a {
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+/*
+ * These custom classes live in @layer components so that Tailwind's
+ * utilities layer (responsive variants like `hidden md:inline-flex`,
+ * state variants, etc.) always wins when combined with them in the same
+ * className. Unlayered CSS beats every Tailwind layer regardless of
+ * source order, which silently breaks things like `hidden md:flex`.
+ */
+@layer components {
+  .font-display {
+    font-family: var(--font-display), system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  .label-eyebrow {
+    font-family: var(--font-body), system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow-panel);
+  }
+
+  .panel-hover {
+    transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+  }
+
+  .panel-hover:hover {
+    border-color: var(--brand);
+    transform: translateY(-2px);
+  }
+
+  .container-max {
+    max-width: 1200px;
+    margin-inline: auto;
+  }
+
+  .prose-max {
+    max-width: 720px;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0 1.25rem;
+    border-radius: 10px;
+    background: var(--brand);
+    color: #ffffff;
+    font-weight: 600;
+    transition: background-color 150ms ease, transform 150ms ease;
+  }
+
+  .btn-primary:hover {
+    background: var(--brand-strong);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0 1.25rem;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-weight: 600;
+    transition: border-color 150ms ease, transform 150ms ease, color 150ms ease;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+    transform: translateY(-1px);
+  }
+
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface) 37%, var(--surface-2) 63%);
+    background-size: 800px 100%;
+    animation: shimmer 1.6s linear infinite;
+  }
+
+  .drawer {
+    transform: translateX(100%);
+    transition: transform 220ms ease;
+  }
+
+  .drawer[data-open="true"] {
+    transform: translateX(0);
+  }
+
+  .drawer-backdrop {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 220ms ease;
+  }
+
+  .drawer-backdrop[data-open="true"] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .cover-placeholder {
+    background: linear-gradient(135deg, var(--surface-2), var(--surface));
+    position: relative;
+  }
+
+  .cover-placeholder::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--brand) 16%, transparent), transparent 60%);
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 500ms ease-out, transform 500ms ease-out;
+  }
+
+  .reveal.reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal-delay-1 {
+    transition-delay: 80ms;
+  }
+
+  .reveal-delay-2 {
+    transition-delay: 160ms;
+  }
+
+  .reveal-delay-3 {
+    transition-delay: 240ms;
+  }
+
+  .hero-float {
+    animation: float 8s ease-in-out infinite;
+  }
+}
+
+/* Accessibility safety net: intentionally unlayered so it always wins. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .hero-float {
+    animation: none;
+  }
+
+  .skeleton {
+    animation: none;
+  }
+
+  .panel-hover,
+  .drawer,
+  .btn-primary,
+  .btn-secondary {
+    transition: none;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }

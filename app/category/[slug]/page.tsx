@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ArticleCard from "@/components/ArticleCard";
 import Pagination from "@/components/Pagination";
+import EmptyState from "@/components/EmptyState";
+import RetryState from "@/components/RetryState";
 import { getArticles, getCategories } from "@/lib/api";
 
 const LIMIT = 9;
@@ -20,7 +22,7 @@ export async function generateMetadata({
   const page = Math.max(1, Number(pageParam) || 1);
 
   const categories = await getCategories();
-  const category = categories.find((c) => c.slug === slug);
+  const category = categories?.find((c) => c.slug === slug);
   if (!category) return {};
 
   return {
@@ -37,11 +39,20 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const page = Math.max(1, Number(pageParam) || 1);
 
   const categories = await getCategories();
-  const category = categories.find((c) => c.slug === slug);
 
+  // API error resolving categories — quiet retry, not a misleading 404.
+  if (categories === null) {
+    return (
+      <div className="container-max px-4 py-12 sm:px-6">
+        <RetryState message="Couldn't load this category." />
+      </div>
+    );
+  }
+
+  const category = categories.find((c) => c.slug === slug);
   if (!category) notFound();
 
-  const { data: articles, total_pages } = await getArticles({
+  const articlesRes = await getArticles({
     page,
     limit: LIMIT,
     category: category.name,
@@ -56,25 +67,29 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         </h1>
       </header>
 
-      {articles.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {articles.map((article) => (
-            <ArticleCard key={article.id} article={article} />
-          ))}
-        </div>
+      {articlesRes === null ? (
+        <RetryState message="Couldn't load articles." />
+      ) : articlesRes.data.length > 0 ? (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {articlesRes.data.map((article) => (
+              <ArticleCard key={article.id} article={article} />
+            ))}
+          </div>
+          <div className="mt-10">
+            <Pagination
+              basePath={`/category/${category.slug}`}
+              currentPage={page}
+              totalPages={articlesRes.total_pages}
+            />
+          </div>
+        </>
       ) : (
-        <div className="panel p-10 text-center">
-          <p className="text-sm text-text-dim">No articles published in this category yet.</p>
-        </div>
-      )}
-
-      <div className="mt-10">
-        <Pagination
-          basePath={`/category/${category.slug}`}
-          currentPage={page}
-          totalPages={total_pages}
+        <EmptyState
+          title="No articles published in this category yet"
+          description="Check back soon — new coverage is added regularly."
         />
-      </div>
+      )}
     </div>
   );
 }

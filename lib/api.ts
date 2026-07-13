@@ -1,14 +1,13 @@
 import type { Article, Category, Paginated, Report } from "./types";
-import {
-  MOCK_ARTICLES,
-  MOCK_CATEGORIES,
-  MOCK_REPORTS,
-  paginate,
-} from "./mock";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://apicodez.monmoto.com";
 const REVALIDATE_SECONDS = 300;
 
+/**
+ * Returns parsed JSON on success, or null on any failure (network error,
+ * non-2xx, bad JSON). Callers distinguish a null result (error → retry state)
+ * from an empty-but-valid payload (→ empty state). There is no mock data.
+ */
 async function apiFetch<T>(path: string): Promise<T | null> {
   try {
     const res = await fetch(`${API_URL}${path}`, {
@@ -29,28 +28,18 @@ export type ArticleListParams = {
 
 export async function getArticles(
   params: ArticleListParams = {}
-): Promise<Paginated<Article>> {
+): Promise<Paginated<Article> | null> {
   const { page = 1, limit = 6, category } = params;
   const qs = new URLSearchParams({
     page: String(page),
     limit: String(limit),
     ...(category ? { category } : {}),
   });
-  const data = await apiFetch<Paginated<Article>>(`/articles?${qs.toString()}`);
-  if (data) return data;
-
-  const filtered = category
-    ? MOCK_ARTICLES.filter(
-        (a) => a.category.toLowerCase() === category.toLowerCase()
-      )
-    : MOCK_ARTICLES;
-  return paginate(filtered, page, limit);
+  return apiFetch<Paginated<Article>>(`/articles?${qs.toString()}`);
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
-  const data = await apiFetch<Article>(`/articles/${slug}`);
-  if (data) return data;
-  return MOCK_ARTICLES.find((a) => a.slug === slug) ?? null;
+  return apiFetch<Article>(`/articles/${slug}`);
 }
 
 export type ReportListParams = {
@@ -62,7 +51,7 @@ export type ReportListParams = {
 
 export async function getReports(
   params: ReportListParams = {}
-): Promise<Paginated<Report>> {
+): Promise<Paginated<Report> | null> {
   const { page = 1, limit = 6, type, severity } = params;
   const qs = new URLSearchParams({
     page: String(page),
@@ -70,23 +59,13 @@ export async function getReports(
     ...(type ? { type } : {}),
     ...(severity ? { severity } : {}),
   });
-  const data = await apiFetch<Paginated<Report>>(`/reports?${qs.toString()}`);
-  if (data) return data;
-
-  let filtered = MOCK_REPORTS;
-  if (type) filtered = filtered.filter((r) => r.report_type === type);
-  if (severity) filtered = filtered.filter((r) => r.severity === severity);
-  return paginate(filtered, page, limit);
+  return apiFetch<Paginated<Report>>(`/reports?${qs.toString()}`);
 }
 
 export async function getReportBySlug(slug: string): Promise<Report | null> {
-  const data = await apiFetch<Report>(`/reports/${slug}`);
-  if (data) return data;
-  return MOCK_REPORTS.find((r) => r.slug === slug) ?? null;
+  return apiFetch<Report>(`/reports/${slug}`);
 }
 
-export async function getCategories(): Promise<Category[]> {
-  const data = await apiFetch<Category[]>("/categories");
-  if (data) return data;
-  return MOCK_CATEGORIES;
+export async function getCategories(): Promise<Category[] | null> {
+  return apiFetch<Category[]>("/categories");
 }

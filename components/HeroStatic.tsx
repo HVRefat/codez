@@ -1,11 +1,10 @@
 export default function HeroStatic() {
   return (
-    <div className="hero-float flex items-center justify-center">
+    <div className="hero-float absolute inset-0 flex items-center justify-center">
       <svg
         viewBox="0 0 480 480"
         width="100%"
         height="100%"
-        className="max-w-md"
         role="img"
         aria-label="Abstract illustration of a security shield formed by concentric rings and nodes"
       >

@@ -5,19 +5,24 @@ import ArticleCard from "@/components/ArticleCard";
 import ReportCard from "@/components/ReportCard";
 import CategoryFilter from "@/components/CategoryFilter";
 import Reveal from "@/components/Reveal";
+import EmptyState from "@/components/EmptyState";
+import RetryState from "@/components/RetryState";
 import { getArticles, getCategories, getReports } from "@/lib/api";
 
 const TrustStrip = dynamic(() => import("@/components/TrustStrip"));
+const HowItWorks = dynamic(() => import("@/components/HowItWorks"));
 const TopicsBand = dynamic(() => import("@/components/TopicsBand"));
 const ReportTipCTA = dynamic(() => import("@/components/ReportTipCTA"));
 const NewsletterSection = dynamic(() => import("@/components/NewsletterSection"));
 
 export default async function Home() {
-  const [{ data: reports }, { data: articles }, categories] = await Promise.all([
+  const [reportsRes, articlesRes, categoriesRes] = await Promise.all([
     getReports({ page: 1, limit: 3 }),
     getArticles({ page: 1, limit: 6 }),
     getCategories(),
   ]);
+
+  const categories = categoriesRes ?? [];
 
   return (
     <>
@@ -41,18 +46,21 @@ export default async function Home() {
           </Link>
         </Reveal>
 
-        {reports.length > 0 ? (
+        {reportsRes === null ? (
+          <RetryState message="Couldn't load threat reports." />
+        ) : reportsRes.data.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {reports.map((report, i) => (
+            {reportsRes.data.map((report, i) => (
               <Reveal key={report.id} delay={((i % 3) + 1) as 1 | 2 | 3}>
                 <ReportCard report={report} />
               </Reveal>
             ))}
           </div>
         ) : (
-          <div className="panel p-8 text-center">
-            <p className="text-sm text-text-dim">No active reports — check back soon.</p>
-          </div>
+          <EmptyState
+            title="No threat reports published yet"
+            description="New threat reports and scam alerts will appear here as they're published."
+          />
         )}
 
         <Link
@@ -86,18 +94,21 @@ export default async function Home() {
             </Reveal>
           )}
 
-          {articles.length > 0 ? (
+          {articlesRes === null ? (
+            <RetryState message="Couldn't load articles." />
+          ) : articlesRes.data.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {articles.map((article, i) => (
+              {articlesRes.data.map((article, i) => (
                 <Reveal key={article.id} delay={((i % 3) + 1) as 1 | 2 | 3}>
                   <ArticleCard article={article} />
                 </Reveal>
               ))}
             </div>
           ) : (
-            <div className="panel p-8 text-center">
-              <p className="text-sm text-text-dim">No articles published yet.</p>
-            </div>
+            <EmptyState
+              title="New articles coming soon"
+              description="Security, technology, and crime analysis articles will appear here."
+            />
           )}
 
           <Link
@@ -109,6 +120,7 @@ export default async function Home() {
         </div>
       </section>
 
+      <HowItWorks />
       <TopicsBand categories={categories} />
       <ReportTipCTA />
       <NewsletterSection />

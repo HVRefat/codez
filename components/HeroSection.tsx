@@ -1,5 +1,6 @@
 import Link from "next/link";
-import Hero from "@/components/Hero";
+import HeroStatic from "@/components/HeroStatic";
+import Hero3DMount from "@/components/Hero3DMount";
 
 export default function HeroSection() {
   return (
@@ -29,7 +30,12 @@ export default function HeroSection() {
       </div>
 
       <div className="order-1 flex justify-center lg:order-2">
-        <Hero />
+        {/* Fixed-aspect box reserves space server-side (zero CLS). The static
+            SVG is the hero immediately; the 3D canvas cross-fades in over it. */}
+        <div className="relative aspect-square w-full max-w-md">
+          <HeroStatic />
+          <Hero3DMount />
+        </div>
       </div>
     </section>
   );

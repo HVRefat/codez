@@ -96,7 +96,11 @@
 
   html {
     background: var(--bg);
+    /* `clip` prevents horizontal scroll WITHOUT creating a scroll container,
+       so `position: sticky` (the scrollytelling stage) keeps working. `hidden`
+       is a fallback for browsers without `clip` support. */
     overflow-x: hidden;
+    overflow-x: clip;
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -111,6 +115,7 @@
     font-family: var(--font-body), system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+    overflow-x: clip;
     transition: background-color 150ms ease, color 150ms ease;
   }
 
@@ -276,6 +281,33 @@
 
   .hero-float {
     animation: float 8s ease-in-out infinite;
+  }
+
+  /* Scrollytelling: default to the static vertical sequence; the desktop
+     3D scrolly only shows on wide viewports with motion allowed. */
+  .story-scrolly {
+    display: none;
+  }
+
+  .story-step {
+    opacity: 0;
+    transition: opacity 400ms ease;
+    pointer-events: none;
+  }
+
+  .story-step[data-active="true"] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .story-static {
+    display: none;
+  }
+
+  .story-scrolly {
+    display: block;
   }
 }
 

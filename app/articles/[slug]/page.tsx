@@ -49,11 +49,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   if (!article) notFound();
 
-  const { data: relatedAll } = await getArticles({
+  const relatedRes = await getArticles({
     category: article.category,
     limit: 4,
   });
-  const related = relatedAll.filter((a) => a.slug !== article.slug).slice(0, 3);
+  const related = (relatedRes?.data ?? [])
+    .filter((a) => a.slug !== article.slug)
+    .slice(0, 3);
 
   const breadcrumb = breadcrumbJsonLd([
     { name: "Home", url: SITE_URL },

@@ -51,11 +51,13 @@ export default async function ReportPage({ params }: ReportPageProps) {
 
   if (!report) notFound();
 
-  const { data: relatedAll } = await getReports({
+  const relatedRes = await getReports({
     type: report.report_type,
     limit: 4,
   });
-  const related = relatedAll.filter((r) => r.slug !== report.slug).slice(0, 3);
+  const related = (relatedRes?.data ?? [])
+    .filter((r) => r.slug !== report.slug)
+    .slice(0, 3);
 
   const breadcrumb = breadcrumbJsonLd([
     { name: "Home", url: SITE_URL },

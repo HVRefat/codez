@@ -31,16 +31,22 @@ export default function SearchClient() {
         getReports({ limit: 50 }),
       ]);
 
+      // Both sources failing is a genuine error; one failing degrades quietly.
+      if (articleResult === null && reportResult === null) {
+        setStatus("error");
+        return;
+      }
+
       const needle = trimmed.toLowerCase();
       setArticles(
-        articleResult.data.filter(
+        (articleResult?.data ?? []).filter(
           (a) =>
             a.title.toLowerCase().includes(needle) ||
             a.excerpt.toLowerCase().includes(needle)
         )
       );
       setReports(
-        reportResult.data.filter(
+        (reportResult?.data ?? []).filter(
           (r) =>
             r.title.toLowerCase().includes(needle) ||
             r.summary.toLowerCase().includes(needle)

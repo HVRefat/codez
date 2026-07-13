@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import ReportCard from "@/components/ReportCard";
 import Pagination from "@/components/Pagination";
+import EmptyState from "@/components/EmptyState";
+import RetryState from "@/components/RetryState";
 import { getReports } from "@/lib/api";
 
 const LIMIT = 9;
@@ -99,12 +101,14 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const type = params.type;
   const severity = params.severity;
 
-  const { data: reports, total_pages } = await getReports({
+  const reportsRes = await getReports({
     page,
     limit: LIMIT,
     type,
     severity,
   });
+
+  const isFiltered = Boolean(type || severity);
 
   return (
     <div className="container-max px-4 py-12 sm:px-6">
@@ -138,26 +142,30 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
         </div>
       </div>
 
-      {reports.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {reports.map((report) => (
-            <ReportCard key={report.id} report={report} />
-          ))}
-        </div>
+      {reportsRes === null ? (
+        <RetryState message="Couldn't load threat reports." />
+      ) : reportsRes.data.length > 0 ? (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {reportsRes.data.map((report) => (
+              <ReportCard key={report.id} report={report} />
+            ))}
+          </div>
+          <div className="mt-10">
+            <Pagination
+              basePath="/reports"
+              currentPage={page}
+              totalPages={reportsRes.total_pages}
+              searchParams={{ type, severity }}
+            />
+          </div>
+        </>
       ) : (
-        <div className="panel p-10 text-center">
-          <p className="text-sm text-text-dim">No reports found for this filter.</p>
-        </div>
-      )}
-
-      <div className="mt-10">
-        <Pagination
-          basePath="/reports"
-          currentPage={page}
-          totalPages={total_pages}
-          searchParams={{ type, severity }}
+        <EmptyState
+          title={isFiltered ? "No reports match these filters" : "No threat reports published yet"}
+          description="New threat reports and scam alerts will appear here as they're published."
         />
-      </div>
+      )}
     </div>
   );
 }

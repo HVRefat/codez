@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import ArticleCard from "@/components/ArticleCard";
 import CategoryFilter from "@/components/CategoryFilter";
 import Pagination from "@/components/Pagination";
+import EmptyState from "@/components/EmptyState";
+import RetryState from "@/components/RetryState";
 import { getArticles, getCategories } from "@/lib/api";
 
 const LIMIT = 9;
@@ -30,10 +32,12 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
   const page = Math.max(1, Number(params.page) || 1);
   const category = params.category;
 
-  const [{ data: articles, total_pages }, categories] = await Promise.all([
+  const [articlesRes, categoriesRes] = await Promise.all([
     getArticles({ page, limit: LIMIT, category }),
     getCategories(),
   ]);
+
+  const categories = categoriesRes ?? [];
 
   return (
     <div className="container-max px-4 py-12 sm:px-6">
@@ -44,30 +48,36 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
         </h1>
       </header>
 
-      <div className="mb-8">
-        <CategoryFilter categories={categories} basePath="/articles" active={category} />
-      </div>
-
-      {articles.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {articles.map((article) => (
-            <ArticleCard key={article.id} article={article} />
-          ))}
-        </div>
-      ) : (
-        <div className="panel p-10 text-center">
-          <p className="text-sm text-text-dim">No articles found for this filter.</p>
+      {categories.length > 0 && (
+        <div className="mb-8">
+          <CategoryFilter categories={categories} basePath="/articles" active={category} />
         </div>
       )}
 
-      <div className="mt-10">
-        <Pagination
-          basePath="/articles"
-          currentPage={page}
-          totalPages={total_pages}
-          searchParams={{ category }}
+      {articlesRes === null ? (
+        <RetryState message="Couldn't load articles." />
+      ) : articlesRes.data.length > 0 ? (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {articlesRes.data.map((article) => (
+              <ArticleCard key={article.id} article={article} />
+            ))}
+          </div>
+          <div className="mt-10">
+            <Pagination
+              basePath="/articles"
+              currentPage={page}
+              totalPages={articlesRes.total_pages}
+              searchParams={{ category }}
+            />
+          </div>
+        </>
+      ) : (
+        <EmptyState
+          title={category ? "No articles in this category yet" : "New articles coming soon"}
+          description="Security, technology, and crime analysis articles will appear here."
         />
-      </div>
+      )}
     </div>
   );
 }
